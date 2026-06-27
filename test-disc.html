@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test DISC — Découvre ton profil | Cinétik RH</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .container { background: white; border-radius: 16px; padding: 2rem; max-width: 580px; width: 100%; }
+  .logo { font-size: 13px; color: #888; margin-bottom: 2rem; }
+  .progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-bottom: 2rem; }
+  .progress-fill { height: 100%; border-radius: 2px; background: #E8762A; transition: width 0.3s ease; }
+  .question-num { font-size: 13px; color: #888; margin-bottom: 0.5rem; }
+  .question-text { font-size: 19px; font-weight: 500; color: #1a1a1a; margin-bottom: 1.5rem; line-height: 1.4; }
+  .option { display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 10px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; cursor: pointer; font-size: 15px; color: #1a1a1a; transition: border-color 0.15s, background 0.15s; font-family: inherit; }
+  .option:hover { border-color: #E8762A; background: #fff8f4; }
+  .option.selected { border: 2px solid #E8762A; background: #fff8f4; }
+  .nav { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
+  .btn { padding: 12px 28px; border-radius: 8px; border: 1px solid #ddd; background: white; color: #1a1a1a; font-size: 15px; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: #E8762A; color: white; border-color: #E8762A; font-weight: 500; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-full { width: 100%; margin-bottom: 8px; }
+  .result-card { background: white; border: 1px solid #eee; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+  .profile-badge { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; margin-bottom: 1rem; }
+  .section-title { font-size: 13px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin: 1.25rem 0 0.6rem; }
+  .tag-list { display: flex; flex-direction: column; gap: 8px; }
+  .tag { font-size: 14px; color: #1a1a1a; line-height: 1.5; padding: 10px 14px; border-radius: 8px; }
+  .tag-strength { background: #f0faf5; }
+  .tag-improve { background: #fff8f4; }
+  .tag-goal { background: #f0f4ff; font-style: italic; }
+  .score-row { margin-bottom: 10px; }
+  .score-label { display: flex; justify-content: space-between; font-size: 13px; color: #888; margin-bottom: 4px; }
+  .score-track { height: 6px; background: #eee; border-radius: 3px; }
+  .score-fill { height: 100%; border-radius: 3px; }
+  .email-section, .result-section { display: none; }
+  .email-section input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 10px; font-family: inherit; }
+  .email-section input:focus { outline: none; border-color: #E8762A; }
+  .dm-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; text-align: center; margin-top: 1.5rem; }
+  .hidden { display: none !important; }
+  @media (max-width: 480px) {
+    body { padding: 1rem 0.5rem; }
+    .container { padding: 1.5rem 1rem; }
+    .question-text { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <p class="logo">Cinétik RH — Test DISC</p>
+
+  <div id="quiz-section">
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:12.5%"></div></div>
+    <p class="question-num" id="q-num">Question 1 / 8</p>
+    <p class="question-text" id="q-text"></p>
+    <div id="options"></div>
+    <div class="nav">
+      <button class="btn btn-primary" id="next-btn" disabled onclick="nextQuestion()">Suivant →</button>
+    </div>
+  </div>
+
+  <div class="email-section" id="email-section">
+    <p style="font-size:19px;font-weight:500;color:#1a1a1a;margin-bottom:0.5rem;">Ton profil est prêt !</p>
+    <p style="font-size:14px;color:#888;margin-bottom:1.5rem;">Laisse ton email pour recevoir ton résultat détaillé — ou découvre-le directement.</p>
+    <input type="email" id="email-input" placeholder="ton@email.fr" />
+    <button class="btn btn-primary btn-full" onclick="submitEmail()">Recevoir mon résultat par email</button>
+    <button class="btn btn-full" style="font-size:13px;color:#888;" onclick="showResult()">Voir directement sans email</button>
+  </div>
+
+  <div class="result-section" id="result-section">
+    <p style="font-size:13px;color:#888;margin-bottom:1rem;">Ton profil dominant</p>
+    <div class="result-card">
+      <div class="profile-badge" id="result-badge"></div>
+      <p style="font-size:22px;font-weight:500;color:#1a1a1a;margin-bottom:0.25rem;" id="result-title"></p>
+      <p style="font-size:14px;color:#888;margin-bottom:1rem;" id="result-subtitle"></p>
+      <p style="font-size:15px;color:#1a1a1a;line-height:1.6;" id="result-desc"></p>
+
+      <p class="section-title">Points forts</p>
+      <div class="tag-list" id="result-strengths"></div>
+
+      <p class="section-title">Axes à travailler</p>
+      <div class="tag-list" id="result-improvements"></div>
+
+      <p class="section-title">Objectif</p>
+      <div class="tag-list" id="result-goal"></div>
+    </div>
+
+    <p style="font-size:13px;color:#888;margin-bottom:0.75rem;margin-top:1.5rem;">Répartition de tes profils</p>
+    <div id="scores-display"></div>
+
+    <div class="dm-box">
+      <p style="font-size:15px;font-weight:500;color:#1a1a1a;margin-bottom:0.5rem;">Tu veux aller plus loin ?</p>
+      <p style="font-size:13px;color:#888;margin-bottom:1rem;">Ce test donne une estimation. En coaching individuel, on explore ton profil en profondeur.</p>
+      <a href="https://www.instagram.com/cinetik_rh/" target="_blank">
+        <button class="btn btn-primary btn-full">Envoie-moi "DISC" en message privé →</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { text: "Face à un problème au travail, tu as tendance à…", options: [
+    { text: "Agir vite et trouver une solution immédiatement", profile: "D" },
+    { text: "En parler à l'équipe pour trouver ensemble", profile: "I" },
+    { text: "Prendre le temps d'analyser avant de réagir", profile: "S" },
+    { text: "Chercher la méthode la plus rigoureuse", profile: "C" }
+  ]},
+  { text: "En réunion, on te reconnaît plutôt comme…", options: [
+    { text: "Celui qui va droit au but et prend les décisions", profile: "D" },
+    { text: "Celui qui anime et fait participer tout le monde", profile: "I" },
+    { text: "Celui qui écoute et apaise les tensions", profile: "S" },
+    { text: "Celui qui pose les bonnes questions et vérifie les détails", profile: "C" }
+  ]},
+  { text: "Quand tu dois convaincre quelqu'un, tu…", options: [
+    { text: "Vas droit au fait avec des arguments concrets", profile: "D" },
+    { text: "Crées une relation de confiance avant tout", profile: "I" },
+    { text: "Prends en compte ses besoins et ses émotions", profile: "S" },
+    { text: "Prépares des données et des preuves solides", profile: "C" }
+  ]},
+  { text: "Ce qui t'énerve le plus au travail, c'est…", options: [
+    { text: "La lenteur et l'indécision", profile: "D" },
+    { text: "Le manque de communication et d'échanges", profile: "I" },
+    { text: "Les changements brusques sans concertation", profile: "S" },
+    { text: "Le manque de rigueur et les erreurs répétées", profile: "C" }
+  ]},
+  { text: "Quand tu travailles en équipe, tu es naturellement…", options: [
+    { text: "Le moteur qui pousse à avancer", profile: "D" },
+    { text: "Le lien qui unit les membres entre eux", profile: "I" },
+    { text: "Le soutien fiable sur lequel tout le monde compte", profile: "S" },
+    { text: "Le garant de la qualité et de la précision", profile: "C" }
+  ]},
+  { text: "Face à une nouvelle tâche, ta première réaction est…", options: [
+    { text: "Foncer et apprendre en faisant", profile: "D" },
+    { text: "En discuter avec des collègues pour avoir leurs avis", profile: "I" },
+    { text: "Comprendre comment ça s'intègre à ce que tu fais déjà", profile: "S" },
+    { text: "Lire les instructions en détail avant de commencer", profile: "C" }
+  ]},
+  { text: "Ce que les autres apprécient le plus chez toi, c'est…", options: [
+    { text: "Ta capacité à prendre des décisions rapidement", profile: "D" },
+    { text: "Ton enthousiasme et ta facilité à créer du lien", profile: "I" },
+    { text: "Ta loyauté et ta fiabilité", profile: "S" },
+    { text: "Ta rigueur et ton souci du détail", profile: "C" }
+  ]},
+  { text: "Quand tu reçois un feedback négatif, tu…", options: [
+    { text: "Le prends comme un challenge à surmonter", profile: "D" },
+    { text: "Ressens le besoin d'en discuter pour mieux comprendre", profile: "I" },
+    { text: "Prends le temps de l'intégrer avant de réagir", profile: "S" },
+    { text: "L'analyses point par point pour t'améliorer", profile: "C" }
+  ]}
+];
+
+const profiles = {
+  D: {
+    label: "Dominant", color: "#E8762A", bgColor: "#FAECE7", textColor: "#993C1D",
+    subtitle: "Orienté résultat et action",
+    desc: "Tu avances vite et tu décides sans hésiter. On te perçoit parfois comme trop direct ou impatient, pourtant tu es simplement focalisé sur ce qui compte vraiment : les résultats. Tu as besoin d'autonomie et de défis pour te sentir à ta place.",
+    strengths: ["Tu prends des décisions rapidement même sous pression", "Tu embarques les autres vers l'action quand tout le monde hésite"],
+    improvements: ["Prendre le temps d'écouter avant de trancher", "Accepter que la lenteur des autres ne soit pas un manque de motivation"],
+    goal: "Apprendre à ralentir intentionnellement pour gagner en impact sur la durée."
+  },
+  I: {
+    label: "Influent", color: "#E8C22A", bgColor: "#FAEEDA", textColor: "#854F0B",
+    subtitle: "Orienté relation et enthousiasme",
+    desc: "Tu fédères naturellement les gens autour de toi. On te dit parfois que tu parles trop, alors que tu aimes simplement les échanges authentiques. Tu donnes de l'énergie à ton entourage et tu fonctionnes mieux quand tu te sens vraiment connecté aux autres.",
+    strengths: ["Tu crées une atmosphère positive et motivante autour de toi", "Tu sais convaincre et embarquer les autres avec enthousiasme"],
+    improvements: ["Aller au bout des tâches sans te disperser", "Apprendre à t'adapter à ceux qui ont besoin de moins de contact"],
+    goal: "Canaliser ton énergie relationnelle pour transformer les bonnes idées en résultats concrets."
+  },
+  S: {
+    label: "Stable", color: "#2A9E75", bgColor: "#E1F5EE", textColor: "#0F6E56",
+    subtitle: "Orienté stabilité et bienveillance",
+    desc: "Tu es la personne sur laquelle tout le monde peut compter. On te dit parfois trop gentil ou passif, alors que tu es simplement prudent et loyal. Tu as besoin d'un environnement stable et de relations de confiance pour donner le meilleur de toi-même.",
+    strengths: ["Tu maintiens la cohésion dans les moments difficiles", "Tu offres un soutien fiable qui rassure toute l'équipe"],
+    improvements: ["Apprendre à dire non sans te sentir coupable", "Oser exprimer ton désaccord avant que la frustration s'accumule"],
+    goal: "Affirmer tes besoins avec autant de soin que tu en accordes aux autres."
+  },
+  C: {
+    label: "Consciencieux", color: "#2A5FE8", bgColor: "#E6F1FB", textColor: "#185FA5",
+    subtitle: "Orienté qualité et précision",
+    desc: "Tu fais les choses bien, jusqu'au bout. On te dit parfois froid ou trop rigoureux, alors que tu es simplement méthodique. Tu as besoin de comprendre le pourquoi des choses et de travailler avec des standards clairs.",
+    strengths: ["Tu produis un travail de qualité sur lequel on peut s'appuyer", "Tu anticipes les problèmes avant qu'ils deviennent des crises"],
+    improvements: ["Accepter qu'un travail à 80% peut suffire dans certains contextes", "Apprendre à communiquer tes analyses de façon plus accessible"],
+    goal: "Faire confiance à ton jugement sans attendre que tout soit parfait pour avancer."
+  }
+};
+
+let current = 0, scores = { D:0, I:0, S:0, C:0 }, selected = null;
+
+function render() {
+  const q = questions[current];
+  document.getElementById('q-num').textContent = `Question ${current + 1} / 8`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('progress').style.width = `${((current + 1) / 8) * 100}%`;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  selected = null;
+  document.getElementById('next-btn').disabled = true;
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt.text;
+    btn.onclick = () => {
+      document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selected = opt.profile;
+      document.getElementById('next-btn').disabled = false;
+    };
+    opts.appendChild(btn);
+  });
+  document.getElementById('next-btn').textContent = current === 7 ? 'Voir mon profil →' : 'Suivant →';
+}
+
+function nextQuestion() {
+  if (!selected) return;
+  scores[selected]++;
+  if (current < 7) { current++; render(); }
+  else {
+    document.getElementById('quiz-section').classList.add('hidden');
+    document.getElementById('email-section').style.display = 'block';
+  }
+}
+
+function submitEmail() { showResult(); }
+
+function showResult() {
+  document.getElementById('email-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'block';
+  const dominant = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+  const p = profiles[dominant];
+
+  const badge = document.getElementById('result-badge');
+  badge.style.background = p.bgColor;
+  badge.style.color = p.textColor;
+  badge.textContent = dominant;
+
+  document.getElementById('result-title').textContent = `Profil ${p.label}`;
+  document.getElementById('result-subtitle').textContent = p.subtitle;
+  document.getElementById('result-desc').textContent = p.desc;
+
+  const strengthsDiv = document.getElementById('result-strengths');
+  p.strengths.forEach(s => {
+    strengthsDiv.innerHTML += `<div class="tag tag-strength">&#10003; ${s}</div>`;
+  });
+
+  const improvDiv = document.getElementById('result-improvements');
+  p.improvements.forEach(s => {
+    improvDiv.innerHTML += `<div class="tag tag-improve">&#8594; ${s}</div>`;
+  });
+
+  document.getElementById('result-goal').innerHTML = `<div class="tag tag-goal">${p.goal}</div>`;
+
+  const total = Object.values(scores).reduce((a,b) => a+b, 0);
+  const scoresDiv = document.getElementById('scores-display');
+  Object.entries(profiles).forEach(([key, prof]) => {
+    const pct = Math.round((scores[key] / total) * 100);
+    scoresDiv.innerHTML += `<div class="score-row"><div class="score-label"><span>${key} ${prof.label}</span><span>${pct}%</span></div><div class="score-track"><div class="score-fill" style="width:${pct}%;background:${prof.color};"></div></div></div>`;
+  });
+}
+
+render();
+</script>
+</body>
+</html>
